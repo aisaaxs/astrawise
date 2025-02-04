@@ -1,0 +1,35 @@
+services:
+  app:
+    image: astrawise
+    container_name: app
+    restart: always
+    build:
+      context: ./
+      target: dev
+      dockerfile: Dockerfile
+    volumes:
+        - .:/app
+        - /app/node_modules
+        - /app/.next
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/astrawise_db?schema=public
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    container_name: database
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: astrawise_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
