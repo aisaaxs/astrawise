@@ -40,7 +40,7 @@ export default function Navbar() {
           </div>
 
           <div className="w-auto h-full px-6 flex justify-center items-center lg:hidden">
-            <FontAwesomeIcon icon={faBars} className="text-white w-6 h-6 cursor-pointer" />
+            <FontAwesomeIcon icon={faBars} className="text-white text-2xl cursor-pointer" />
           </div>
         </div>
       </nav>

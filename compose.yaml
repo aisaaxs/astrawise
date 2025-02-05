@@ -5,18 +5,20 @@ services:
     restart: always
     build:
       context: ./
-      target: dev
+      target: dev   # Use 'production' if you want to build a production image
       dockerfile: Dockerfile
+      no_cache: true
     volumes:
-        - .:/app
-        - /app/node_modules
-        - /app/.next
+      - .:/app
+      - /app/node_modules
+      - /app/.next
     ports:
       - "3000:3000"
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/astrawise_db?schema=public
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   db:
     image: postgres:15-alpine
@@ -30,6 +32,11 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

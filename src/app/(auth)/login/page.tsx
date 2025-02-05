@@ -7,6 +7,7 @@ import Image from "next/image";
 import { z } from "zod";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
     email: z.string().email("Please enter a valid email address."),
@@ -16,10 +17,12 @@ const loginSchema = z.object({
 });
 
 export default function Login() {
+    const router = useRouter();
+
     const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
     const [showPassword, setShowPassword] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         const email = (e.currentTarget.querySelector("#email") as HTMLInputElement).value;
@@ -36,7 +39,39 @@ export default function Login() {
             setErrors(fieldErrors);
         } else {
             setErrors({});
-            console.log("Form submitted successfully!", { email, password });
+            try {
+                const response = await fetch("/api/auth/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ email, password }),
+                });
+            
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || "Something went wrong during login.");
+                } else {
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        throw new Error(data.error);
+                    } else {
+                        router.push("/dashboard");
+                    }
+                }
+            } catch (error) {
+                if (error instanceof Error) {
+                    if (error.message.includes("already exists")) {
+                        setErrors({ email: "An account with this email already exists!" });
+                    } else {
+                        alert(error.message);
+                    }
+                } else {
+                    console.error("An unexpected error occurred:", error);
+                    alert("An unexpected error occurred.");
+                }
+            }      
         }
     };
 

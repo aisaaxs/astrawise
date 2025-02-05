@@ -7,8 +7,8 @@ import Image from "next/image";
 import { z } from "zod";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { useRouter } from "next/navigation";
 
-// Zod Schema for Sign-Up Validation
 const signupSchema = z.object({
     fullName: z.string().min(1, "Full Name is required."),
     email: z.string().email("Please enter a valid email address."),
@@ -29,7 +29,9 @@ export default function Signup() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const router = useRouter();
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         const fullName = (e.currentTarget.querySelector("#fullName") as HTMLInputElement).value;
@@ -50,7 +52,40 @@ export default function Signup() {
             setErrors(fieldErrors);
         } else {
             setErrors({});
-            console.log("Form submitted successfully!", { fullName, email, password });
+
+            try {
+                const response = await fetch("/api/auth/signup", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ fullname: fullName, email, password }),
+                });
+            
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || "Something went wrong during signup.");
+                } else {
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        throw new Error(data.error);
+                    } else {
+                        router.push("/dashboard");
+                    }
+                }
+            } catch (error) {
+                if (error instanceof Error) {
+                    if (error.message.includes("already exists")) {
+                        setErrors({ email: "An account with this email already exists!" });
+                    } else {
+                        alert(error.message);
+                    }
+                } else {
+                    console.error("An unexpected error occurred:", error);
+                    alert("An unexpected error occurred.");
+                }
+            }            
         }
     };
 
