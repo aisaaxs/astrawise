@@ -7,7 +7,7 @@ EXPOSE 3000
 # Development Build
 FROM base as dev
 ENV NODE_ENV=development
-RUN npm install
+RUN npm install --legacy-peer-deps
 COPY . .
 CMD npx prisma generate && npx prisma db push && npm run dev
 

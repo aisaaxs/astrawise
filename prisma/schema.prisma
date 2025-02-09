@@ -16,6 +16,8 @@ model User {
   updatedAt DateTime @updatedAt
 
   Session Session[]
+  PlaidItem PlaidItem[]
+  Account Account[]
 }
 
 model Session {
@@ -26,4 +28,37 @@ model Session {
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PlaidItem {
+  id          String      @id @default(cuid())
+  itemId      String   @unique
+  accessToken String
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accounts Account[]
+}
+
+model Account {
+  id               String           @id @default(cuid())
+  accountId        String        @unique
+  availableBalance Float?
+  currentBalance   Float
+  isoCurrencyCode  String?
+  mask             String?
+  name             String
+  officialName     String?
+  persistentAccId  String
+  subtype          String
+  type             String
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  userId           String
+  plaidItemId      String
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plaidItem PlaidItem @relation(fields: [plaidItemId], references: [id], onDelete: Cascade)
 }

@@ -23,8 +23,8 @@ export default function Navbar() {
 
         <div className="w-full h-full flex flex-row justify-end items-center lg:px-6">
           <div className="w-auto h-full flex justify-center items-center flex-row gap-x-4 px-6 max-lg:hidden">
-            {navbarLinks.map((link) => (
-                  <Link key={link.name} href={link.href} className={`font-medium font-sans text-md capitalize ${pathname === link.href ? "bg-yellow-400 text-black" : "bg-transparent text-white hover:bg-zinc-300"} hover:text-black p-2 flex justify-center items-center rounded-md`}>{link.name}</Link>
+            {navbarLinks.map((link, index) => (
+                  <Link key={index} href={link.href} className={`font-medium font-sans text-md capitalize ${pathname === link.href ? "bg-yellow-400 text-black" : "bg-transparent text-white hover:bg-zinc-300"} hover:text-black p-2 flex justify-center items-center rounded-md`}>{link.name}</Link>
                 )
               )
             }
