@@ -279,7 +279,7 @@ export default function Dashboard() {
                             </div>
 
                             <div className="w-full h-full flex justify-center items-center p-4">
-                                <div className="w-full h-full bg-gradient-to-br from-amber-400 to-orange-700 shadow-xl rounded-lg grid grid-rows-3">
+                                <div className="w-full h-full bg-gradient-to-br from-sky-400 to-blue-700 shadow-xl rounded-lg grid grid-rows-3">
                                     <div className="w-full h-full flex justify-center items-center">
                                         <h3 className="text-white text-xl font-sans font-bold capitalize">
                                             Current Balance
@@ -338,8 +338,8 @@ export default function Dashboard() {
                         </div>
                     </div>
 
-                    <div className="w-full h-full flex justify-center items-end px-4 pt-4">
-                        <div className="w-full h-full bg-gray-900  shadow-xl rounded-t-lg grid grid-rows-[auto_85%]">
+                    <div className="w-full h-full flex justify-center items-end p-4">
+                        <div className="w-full h-full bg-gray-900  shadow-xl rounded-lg grid grid-rows-[auto_85%]">
                             <div className="w-full h-full flex justify-center items-center">
                                 <h3 className="text-white text-xl font-sans font-bold capitalize">
                                     list of transactions
