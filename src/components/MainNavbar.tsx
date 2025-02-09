@@ -32,12 +32,12 @@ export default function MainNavbar() {
         },
     ]
     return (
-        <div className="w-full h-full flex justify-center items-center">
-            <Link className="absolute left-5 drop-shadow-xl text-4xl text-white bg-blue-700 p-2 px-6 rounded-tl-full rounded-br-full italic font-sans font-extrabold" href="/dashboard">
+        <div className="w-full h-full flex justify-center items-center bg-gray-800">
+            <Link className="absolute left-5 drop-shadow-xl text-4xl text-white bg-blue-600 p-2 px-6 rounded-tl-full rounded-br-full italic font-sans font-extrabold" href="/dashboard">
                 AW
             </Link>
 
-            <div className="w-auto h-auto p-2 px-4 bg-gray-800 flex flex-row justify-evenly items-center gap-x-4">
+            <div className="w-auto h-auto p-2 px-4 flex flex-row justify-evenly items-center gap-x-4">
                 {
                     NavLinks.map((link, index) => (
                         <Link key={index} href={link.href} className={`w-auto h-full ${pathname === link.href ? "border-b-4 border-blue-600" : "hover:border-b-4 hover:border-gray-300"} px-4 py-2 flex justify-center items-center gap-x-2`}>

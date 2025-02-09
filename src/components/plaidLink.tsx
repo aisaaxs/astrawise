@@ -46,23 +46,28 @@ const PlaidLink = ({ onAccountCreated }: PlaidLinkProps) => {
   });
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gray-100">
-      <FontAwesomeIcon icon={faBank} className="text-blue-600 text-6xl mb-6" />
-      <h2 className="text-2xl font-semibold text-gray-700 mb-4">
-        Connect Your Bank Account
-      </h2>
-      <p className="text-gray-600 mb-8 text-center">
-        Linking your bank allows us to help you manage your finances with insightful data
-      </p>
+    <div className="w-full h-full flex justify-center items-center bg-gray-800">
+      <div className="w-auto h-auto p-8 flex flex-col justify-center items-center bg-gray-900 rounded-xl shadow-2xl">
+        <FontAwesomeIcon icon={faBank} className="text-blue-600 text-6xl mb-8" />
+
+        <h2 className="text-2xl font-semibold text-white mb-4">
+          Connect Your Bank Account
+        </h2>
+
+        <p className="text-white mb-8 text-center">
+          Linking your bank allows us to help you manage your finances with insightful data
+        </p>
+
         {linkToken && (
           <button
             onClick={() => open()}
             disabled={!ready}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition"
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition mt-4"
           >
             Connect Bank
           </button>
         )}
+      </div>
     </div>
   );
 };

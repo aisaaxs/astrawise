@@ -18,6 +18,7 @@ model User {
   Session Session[]
   PlaidItem PlaidItem[]
   Account Account[]
+  Transaction Transaction[]
 }
 
 model Session {
@@ -40,10 +41,11 @@ model PlaidItem {
 
   User User @relation(fields: [userId], references: [id], onDelete: Cascade)
   accounts Account[]
+  transactions Transaction[]
 }
 
 model Account {
-  id               String           @id @default(cuid())
+  id               String        @id @default(cuid())
   accountId        String        @unique
   availableBalance Float?
   currentBalance   Float
@@ -59,6 +61,32 @@ model Account {
   userId           String
   plaidItemId      String
 
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plaidItem PlaidItem @relation(fields: [plaidItemId], references: [id], onDelete: Cascade)
+}
+
+model Transaction {
+  id              String    @id @default(cuid())
+  transactionId   String    @unique
+  accountId       String
+  userId          String
+  plaidItemId     String
+  amount          Float
+  date            DateTime
+  authorizedDate  DateTime?
+  category        String?
+  subCategory     String?
+  categoryId      String?
+  merchantName    String?
+  merchantLogoUrl String?
+  paymentChannel  String?
+  pending         Boolean
+  currencyCode    String?
+  transactionType String?
+  website         String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
   User User @relation(fields: [userId], references: [id], onDelete: Cascade)
   plaidItem PlaidItem @relation(fields: [plaidItemId], references: [id], onDelete: Cascade)
 }

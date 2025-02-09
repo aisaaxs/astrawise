@@ -1,9 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import React from "react";
 import { useState, useEffect } from "react";
 
 interface Account {
+    accountId: string;
     officialName: string;
     mask: string;
     subtype: string;
@@ -11,8 +13,19 @@ interface Account {
     isoCurrencyCode: string;
 }
 
+interface Transaction {
+    id: string;
+    amount: number;
+    accountId: string;
+    merchantName: string;
+    category: string;
+    date: string;
+    merchantLogoUrl: string;
+}
+
 export default function Dashboard() {
     const [accounts, setAccounts] = useState<Account[]>([]);
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [selectedAccount, setSelectedAccount] = useState(0);
     const [accountColors, setAccountColors] = useState<string[]>([]);
 
@@ -52,8 +65,76 @@ export default function Dashboard() {
             }
         }
 
+        async function getTransactions() {
+            try {
+                const response = await fetch("/api/user/get-transactions", { credentials: "include" });
+                const data = await response.json();
+               
+                setTransactions(data.transactions);
+            } catch (error) {
+                console.error("Error getting user transactions:", error);
+            }
+        }
+
         getAccounts();
+        getTransactions();
     }, []);
+
+    const [selectedYear, setSelectedYear] = useState<number | null>(null);
+    const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+    const [income, setIncome] = useState(0);
+    const [spendings, setSpendings] = useState(0);
+    const [filterYears, setFilterYears] = useState<number[]>([]);
+    const [filterMonths, setFilterMonths] = useState<number[]>([]);
+    const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
+
+    useEffect(() => {
+        const selectedAccId = accounts[selectedAccount]?.accountId;
+        if (!selectedAccId) return;
+    
+        const filtered = transactions.filter((t) => {
+            const transactionDate = new Date(t.date);
+            const transactionYear = transactionDate.getFullYear();
+            const transactionMonth = transactionDate.getMonth();
+    
+            return (
+                t.accountId === selectedAccId &&
+                (selectedYear === null || transactionYear === selectedYear) &&
+                (selectedMonth === null || transactionMonth === selectedMonth)
+            );
+        });
+    
+        setIncome(filtered.filter((t) => t.amount > 0).reduce((acc, t) => acc + t.amount, 0));
+        setSpendings(filtered.filter((t) => t.amount < 0).reduce((acc, t) => acc + Math.abs(t.amount), 0));
+    
+        const uniqueYears = new Set<number>();
+        transactions.forEach((t) => {
+            if (t.accountId === selectedAccId) {
+                uniqueYears.add(new Date(t.date).getFullYear());
+            }
+        });
+        setFilterYears([...uniqueYears].sort((a, b) => b - a));
+    
+        if (selectedYear !== null) {
+            const uniqueMonths = new Set<number>();
+            transactions.forEach((t) => {
+                const transactionDate = new Date(t.date);
+                if (t.accountId === selectedAccId && transactionDate.getFullYear() === selectedYear) {
+                    uniqueMonths.add(transactionDate.getMonth());
+                }
+            });
+            setFilterMonths([...uniqueMonths].sort((a, b) => a - b));
+        } else {
+            setFilterMonths([]);
+        }
+    
+        setFilteredTransactions(filtered);
+    }, [selectedAccount, transactions, accounts, selectedYear, selectedMonth]);    
+
+    const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
 
     return (
         <div className="w-full h-full grid grid-cols-[65%_auto]">
@@ -108,20 +189,64 @@ export default function Dashboard() {
                             </div>
 
                             <div className="w-full h-full grid grid-rows-2">
-                                <div className="w-full h-full max-h-[150px] flex justify-center items-center flex-row flex-wrap gap-4 p-2 overflow-y-scroll no-scrollbar">
-                                    <div className="w-auto h-auto p-1 px-3 flex justify-center items-center hover:bg-gray-600 hover:bg-opacity-50 border-2 border-gray-500 hover:border-white rounded-full cursor-pointer group">
-                                        <p className="text-gray-400 group-hover:text-white font-sans text-md font-medium">
-                                            2025
-                                        </p>
-                                    </div>
+                                <div className="w-full h-full max-h-[150px] flex justify-center items-center flex-row flex-wrap gap-4 p-4 overflow-y-scroll no-scrollbar">
+                                    {filterYears.map((year) => (
+                                        <div
+                                            key={year}
+                                            className={`w-auto h-auto p-1 px-3 flex justify-center items-center rounded-full cursor-pointer group border-2 bg-opacity-50 ${selectedYear === year ? "bg-sky-500 border-sky-500" : "hover:bg-gray-600 border-gray-500 hover:border-white"}`}
+                                            onClick={() => {
+                                                if (!filterYears.includes(year)) {
+                                                    return;
+                                                } else {
+                                                    if (selectedYear === year) {
+                                                        setSelectedYear(null);
+                                                    } else {
+                                                        setSelectedYear(year);
+                                                    }
+
+                                                    setSelectedMonth(null);
+                                                }
+                                            }}
+                                        >
+                                            <p className={`font-sans text-md font-medium ${selectedYear === year ? "text-sky-300": "text-gray-400 group-hover:text-white"}`}>
+                                                {year}
+                                            </p>
+                                        </div>
+                                    ))}
                                 </div>
 
-                                <div className="w-full h-full max-h-[150px] flex justify-center items-center flex-row flex-wrap gap-4 p-2 overflow-y-scroll no-scrollbar border-t-4 border-gray-800">
-                                    <div className="w-auto h-auto p-1 px-3 flex justify-center items-center hover:bg-gray-600 hover:bg-opacity-50 border-2 border-gray-500 hover:border-white rounded-full cursor-pointer group">
-                                        <p className="text-gray-400 group-hover:text-white font-sans text-md font-medium capitalize">
-                                            january
-                                        </p>
-                                    </div>
+                                <div className="w-full h-full max-h-[150px] flex justify-center items-center flex-row flex-wrap gap-4 p-4 overflow-y-scroll no-scrollbar border-t-4 border-gray-800">
+                                    {
+                                        selectedYear ? (
+                                        monthNames.map((month) => (
+                                            <div
+                                                key={month}
+                                                className={`w-auto h-auto p-1 px-3 flex justify-center items-center rounded-full bg-opacity-50 border-2 group
+                                                ${selectedMonth === monthNames.indexOf(month) ? "bg-sky-500 border-sky-500" : filterMonths.includes(monthNames.indexOf(month)) ? "hover:bg-gray-600 border-gray-500 hover:border-white cursor-pointer" : "border-gray-800"}`}
+                                                onClick={() => {
+                                                    if (!filterMonths.includes(monthNames.indexOf(month))) {
+                                                        return;
+                                                    } else {
+                                                        if (selectedMonth === monthNames.indexOf(month)) {
+                                                            setSelectedMonth(null);
+                                                        } else {
+                                                            setSelectedMonth(monthNames.indexOf(month));
+                                                        }
+                                                    }
+                                                }}
+                                            >
+                                                <p className={`${selectedMonth === monthNames.indexOf(month) ? "text-sky-300" : filterMonths.includes(monthNames.indexOf(month)) ? "text-gray-400 group-hover:text-white" : "text-gray-700"} font-sans text-md font-medium capitalize`}>
+                                                    {month}
+                                                </p>
+                                            </div>
+                                        ))) : (
+                                            <div className="w-full h-full flex justify-center items-center">
+                                                <p className="text-gray-400 font-sans text-md font-medium capitalize">
+                                                    please select a year
+                                                </p>
+                                            </div>
+                                        )
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -141,7 +266,7 @@ export default function Dashboard() {
 
                                     <div className="w-full h-full flex justify-center items-center">
                                         <p className="text-white text-4xl font-sans font-medium capitalize">
-                                            {accounts[selectedAccount]?.currentBalance % 1 !== 0 ? accounts[selectedAccount]?.currentBalance.toFixed(2) : accounts[selectedAccount]?.currentBalance}
+                                            {income % 1 !== 0 ? income.toFixed(2) : income}
                                         </p>
                                     </div>
 
@@ -185,7 +310,7 @@ export default function Dashboard() {
 
                                     <div className="w-full h-full flex justify-center items-center">
                                         <p className="text-white text-4xl font-sans font-medium capitalize">
-                                            {accounts[selectedAccount]?.currentBalance % 1 !== 0 ? accounts[selectedAccount]?.currentBalance.toFixed(2) : accounts[selectedAccount]?.currentBalance}
+                                            {spendings % 1 !== 0 ? spendings.toFixed(2) : spendings}
                                         </p>
                                     </div>
 
@@ -214,8 +339,67 @@ export default function Dashboard() {
                     </div>
 
                     <div className="w-full h-full flex justify-center items-end px-4 pt-4">
-                        <div className="w-full h-full bg-gray-900  shadow-xl rounded-t-lg">
+                        <div className="w-full h-full bg-gray-900  shadow-xl rounded-t-lg grid grid-rows-[auto_85%]">
+                            <div className="w-full h-full flex justify-center items-center">
+                                <h3 className="text-white text-xl font-sans font-bold capitalize">
+                                    list of transactions
+                                </h3>
+                            </div>
 
+                            <div className="w-full h-full max-h-[315px] overflow-auto no-scrollbar">
+                                <table className="w-full border-collapse">
+                                    <thead className="sticky top-0 bg-gray-800 text-white">
+                                        <tr className="text-lg">
+                                            <th className="p-3 text-left border-b border-gray-600">Date</th>
+                                            <th className="p-3 text-left border-b border-gray-600">Logo</th>
+                                            <th className="p-3 text-left border-b border-gray-600">Merchant</th>
+                                            <th className="p-3 text-left border-b border-gray-600">Category</th>
+                                            <th className="p-3 text-right border-b border-gray-600">Amount</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody className="text-white">
+                                        {filteredTransactions.length > 0 ? (
+                                            filteredTransactions.map((transaction) => (
+                                                <tr key={transaction.id} className="border-b border-gray-700 hover:bg-gray-800 transition-all">
+                                                    <td className="p-3">{new Date(transaction.date).toLocaleDateString()}</td>
+
+                                                    <td className="p-3">
+                                                        {transaction.merchantLogoUrl ? (
+                                                            <Image
+                                                                loader={() => transaction.merchantLogoUrl}
+                                                                src={transaction.merchantLogoUrl || "/fallback-logo.png"}
+                                                                alt="Merchant Logo"
+                                                                width={30} 
+                                                                height={30} 
+                                                                className="rounded-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <span className="text-gray-400">null</span>
+                                                        )}
+                                                    </td>
+
+                                                    <td className="p-3">{transaction.merchantName || "Unknown Merchant"}</td>
+
+                                                    <td className="p-3">{transaction.category || "Uncategorized"}</td>
+
+                                                    <td className={`p-3 text-right font-medium ${
+                                                        transaction.amount > 0 ? "text-green-400" : "text-red-400"
+                                                    }`}>
+                                                        ${Math.abs(transaction.amount).toFixed(2)}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td className="p-5 text-center text-gray-400">
+                                                    No transactions available for the selected period.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

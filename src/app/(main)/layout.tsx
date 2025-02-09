@@ -49,6 +49,13 @@ export default function MainLayout({
               credentials: "include",
             });
 
+            await fetch("/api/plaid/fetch-transactions", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({}),
+              credentials: "include",
+            });
+
             window.location.reload();
           }}
         />
