@@ -42,6 +42,8 @@ export default function MainLayout({
       {hasAccount === false ? (
         <PlaidLink
           onAccountCreated={async () => {
+            setLoading(true);
+
             await fetch("/api/plaid/fetch-accounts", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -55,6 +57,8 @@ export default function MainLayout({
               body: JSON.stringify({}),
               credentials: "include",
             });
+
+            setLoading(false);
 
             window.location.reload();
           }}

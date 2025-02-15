@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   build: {
     transpile: ['@jose/dist/types']
   },
+  reactStrictMode: false
 };
 
 export default nextConfig;

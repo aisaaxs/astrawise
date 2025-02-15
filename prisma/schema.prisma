@@ -19,6 +19,10 @@ model User {
   PlaidItem PlaidItem[]
   Account Account[]
   Transaction Transaction[]
+
+  ChatMessage ChatMessage[]
+
+  ChatTitle ChatTitle[]
 }
 
 model Session {
@@ -77,6 +81,8 @@ model Transaction {
   category        String?
   subCategory     String?
   categoryId      String?
+  personalFinanceCategory String?
+  personalFinanceCategoryIconUrl String?
   merchantName    String?
   merchantLogoUrl String?
   paymentChannel  String?
@@ -89,4 +95,26 @@ model Transaction {
   
   User User @relation(fields: [userId], references: [id], onDelete: Cascade)
   plaidItem PlaidItem @relation(fields: [plaidItemId], references: [id], onDelete: Cascade)
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  userId    String   
+  chatId    String
+  sender    String   // "user" or "bot"
+  message   String   
+  timestamp DateTime @default(now())
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ChatTitle {
+  id        String   @id @default(cuid())
+  userId    String
+  chatId    String  @unique
+  title     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

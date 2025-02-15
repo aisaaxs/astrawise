@@ -6,35 +6,45 @@ import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBank } from "@fortawesome/free-solid-svg-icons";
 import React from "react";
+import Loading from "./loading";
 
 interface PlaidLinkProps {
   onAccountCreated: () => void;
 }
 
 const PlaidLink = ({ onAccountCreated }: PlaidLinkProps) => {
+  const [loading, setLoading] = useState(true);
   const [linkToken, setLinkToken] = useState<string | null>(null);
 
   useEffect(() => {
     const createLinkToken = async () => {
       try {
+        setLoading(true);
         const response = await axios.post("/api/plaid/create-link-token", {
           client_user_id: "user_good",
         });
         setLinkToken(response.data.link_token);
       } catch (error) {
         console.error("Error generating link token:", error);
+      } finally {
+        setLoading(false);
       }
     };
+
     createLinkToken();
   }, []);
 
   const onSuccess = async (public_token: string) => {
     try {
+      setLoading(true);
+
       await axios.post("/api/plaid/exchange-token", {
         public_token,
       });
 
       if (onAccountCreated) onAccountCreated();
+
+      setLoading(false);
     } catch (error) {
       console.error("Error exchanging public token:", error);
     }
@@ -44,6 +54,10 @@ const PlaidLink = ({ onAccountCreated }: PlaidLinkProps) => {
     token: linkToken!,
     onSuccess,
   });
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <div className="w-full h-full flex justify-center items-center bg-gray-800">
