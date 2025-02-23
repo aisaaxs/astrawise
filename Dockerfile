@@ -1,24 +1,24 @@
-FROM node:18-alpine as base
+FROM node:18-alpine AS base
 RUN apk add --no-cache g++ make py3-pip libc6-compat openssl
 WORKDIR /app
 COPY package*.json ./
 EXPOSE 3000
 
 # Development Build
-FROM base as dev
+FROM base AS dev
 ENV NODE_ENV=development
 RUN npm install --legacy-peer-deps
 COPY . .
 CMD npx prisma generate && npx prisma db push && npm run dev
 
 # Production Build
-FROM base as builder
+FROM base AS builder
 WORKDIR /app
 COPY . .
 RUN npm install
 RUN npm run build
 
-FROM base as production
+FROM base AS production
 WORKDIR /app
 
 ENV NODE_ENV=production

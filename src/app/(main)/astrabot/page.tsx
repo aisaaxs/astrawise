@@ -129,39 +129,52 @@ export default function AstraBot() {
         }
     };
 
-    const simulateBotResponse = (fullText: string, chatId: string) => {
+    const simulateBotResponse = (fullText: string | undefined | null, chatId: string) => {
+        if (!fullText || typeof fullText !== "string") {
+            console.error("simulateBotResponse received an invalid fullText:", fullText);
+            return;
+        }
+
         let index = 0;
         let tempText = "";
 
         setChats((prevChats) =>
             prevChats.map((chat) =>
                 chat.chatId === chatId
-                    ? { ...chat, messages: [...chat.messages, { id: chat.messages.length + 1, message: "", sender: "bot" }] }
+                    ? {
+                          ...chat,
+                          messages: [
+                              ...chat.messages,
+                              { id: chat.messages.length + 1, message: "", sender: "bot" },
+                          ],
+                      }
                     : chat
             )
         );
 
         const updateMessage = () => {
-            if (index < fullText.length) {
-                tempText += fullText[index];
-                setChats((prevChats) =>
-                    prevChats.map((chat) =>
-                        chat.chatId === chatId
-                            ? {
-                                  ...chat,
-                                  messages: chat.messages.map((msg, idx) =>
-                                      idx === chat.messages.length - 1 ? { ...msg, message: tempText } : msg
-                                  ),
-                              }
-                            : chat
-                    )
-                );
-                index++;
-                requestAnimationFrame(updateMessage);
-            }
+            if (index >= fullText.length) return;
+
+            tempText += fullText.charAt(index);
+
+            setChats((prevChats) =>
+                prevChats.map((chat) =>
+                    chat.chatId === chatId
+                        ? {
+                              ...chat,
+                              messages: chat.messages.map((msg, idx) =>
+                                  idx === chat.messages.length - 1 ? { ...msg, message: tempText } : msg
+                              ),
+                          }
+                        : chat
+                )
+            );
+
+            index++;
+            setTimeout(updateMessage, 10);
         };
 
-        requestAnimationFrame(updateMessage);
+        updateMessage();
     };
 
     return (
@@ -220,19 +233,52 @@ export default function AstraBot() {
                                     <ReactMarkdown 
                                         remarkPlugins={[remarkGfm]} 
                                         components={{
-                                            h1: ({ children }) => <h1 className="text-2xl font-bold mb-4">{children}</h1>,
-                                            h2: ({ children }) => <h2 className="text-xl font-semibold mb-3">{children}</h2>,
-                                            h3: ({ children }) => <h3 className="text-lg font-medium mb-2">{children}</h3>,
-                                            p: ({ children }) => <p className="mb-4">{children}</p>,
-                                            ul: ({ children }) => <ul className="list-disc pl-5 mb-4">{children}</ul>,
-                                            ol: ({ children }) => <ol className="list-decimal pl-5 mb-4">{children}</ol>,
-                                            li: ({ children }) => <li className="mb-2">{children}</li>,
-                                            table: ({ children }) => <table className="table-auto border-collapse border border-gray-900 my-4">{children}</table>,
-                                            thead: ({ children }) => <thead className="bg-gray-900">{children}</thead>,
-                                            tr: ({ children }) => <tr className="border border-gray-900">{children}</tr>,
-                                            td: ({ children }) => <td className="border border-gray-900 p-2">{children}</td>,
-                                            th: ({ children }) => <th className="border border-gray-900 p-2 font-bold">{children}</th>,
-                                            code: ({ children }) => <code className="bg-gray-900 text-white px-2 py-1 rounded">{children}</code>,
+                                            h1: ({ children }) => (
+                                                <h1 className="text-2xl font-bold mb-4 mt-6">{children}</h1>
+                                            ),
+                                            h2: ({ children }) => (
+                                                <h2 className="text-xl font-semibold mb-3 mt-5">{children}</h2>
+                                            ),
+                                            h3: ({ children }) => (
+                                                <h3 className="text-lg font-medium mb-2 mt-4">{children}</h3>
+                                            ),
+                                            p: ({ children }) => (
+                                                <p className="leading-relaxed mb-4">{children}</p>
+                                            ),
+                                            ul: ({ children }) => (
+                                                <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>
+                                            ),
+                                            ol: ({ children }) => (
+                                                <ol className="list-decimal pl-6 mb-4 space-y-2">{children}</ol>
+                                            ),
+                                            li: ({ children }) => (
+                                                <li className="mb-1">{children}</li>
+                                            ),
+                                            table: ({ children }) => (
+                                                <div className="overflow-x-auto">
+                                                    <table className="table-auto border-collapse border border-gray-300 w-full my-4">
+                                                        {children}
+                                                    </table>
+                                                </div>
+                                            ),
+                                            thead: ({ children }) => (
+                                                <thead className="bg-gray-200 text-gray-900 font-bold">{children}</thead>
+                                            ),
+                                            tr: ({ children }) => (
+                                                <tr className="border border-gray-300">{children}</tr>
+                                            ),
+                                            td: ({ children }) => (
+                                                <td className="border border-gray-300 p-3 text-left">{children}</td>
+                                            ),
+                                            th: ({ children }) => (
+                                                <th className="border border-gray-300 p-3 font-bold text-left">{children}</th>
+                                            ),
+                                            code: ({ children }) => (
+                                                <code className="bg-gray-800 text-white px-2 py-1 rounded text-sm">{children}</code>
+                                            ),
+                                            pre: ({ children }) => (
+                                                <pre className="bg-gray-900 text-white p-4 rounded-md overflow-x-auto">{children}</pre>
+                                            ),
                                         }}
                                     >
                                         {message.message}
@@ -242,7 +288,7 @@ export default function AstraBot() {
                         ))}
                         {botThinking && (
                             <div className="w-full flex justify-start">
-                                <div className="w-auto max-w-[500px] h-auto p-3 rounded-lg text-white bg-gradient-to-br from-sky-600 to-blue-600">
+                                <div className="w-auto max-w-[500px] overflow-x-hidden h-auto p-3 rounded-lg text-white bg-gradient-to-br from-sky-600 to-blue-600">
                                     <span className="animate-pulse">Thinking...</span>
                                 </div>
                             </div>

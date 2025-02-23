@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
       },
     }));
 
-    await pineconeIndex.namespace("transactions").upsert(pineconeUpserts);
+    await pineconeIndex.namespace(userId).upsert(pineconeUpserts);
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
